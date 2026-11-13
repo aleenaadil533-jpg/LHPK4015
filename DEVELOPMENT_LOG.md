@@ -56,3 +56,22 @@ Program received signal SIGFPE, Arithmetic exception.
 
 **Cause:** the divisor was placed in EDX, but `div` divides the 64-bit value in EDX:EAX. The dividend therefore became 0x00000008_00000040, and the quotient of that divided by 8 does not fit in 32 bits. The CPU raised a divide error (#DE), which Linux reports as SIGFPE.
 **Next step:** use ECX for the divisor and leave EDX holding the high half of the `mul` result, which is 0.
+
+## Attempt 4 (correct result, but edge cases fail)
+
+```
+$ ./q2 ; echo $?
+8
+(gdb) x/4uw &numbers
+0x804a000 <numbers>:  8  8  24  32     <- correct
+```
+
+Edge-case testing showed this version is still fragile.
+
+| Test | Change | Result |
+|---|---|---|
+| Divide by zero | divisor = 0 | `Floating point exception`, exit 136 (crash) |
+| Overflow | multiplier = 0x20000000 | exit 0, `numbers[1]` = 1073741824 (silently wrong) |
+
+The program also hard-codes values such as `+ 4`, 4 and 8 directly in the instructions instead of naming them.
+**Next step:** add a divisor-zero check and a `mul` overflow check (CF), replace the hard-coded values with named constants, and document each step.
