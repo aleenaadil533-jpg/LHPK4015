@@ -71,3 +71,23 @@ $ ./q3 ; echo $?
 - B[10] was written past the end of B, overwriting the next variable with the value 16.
 
 **Next step:** use a separate index that counts up from 0 to 9, with `inc` / `cmp` / `jb`, exactly as the C `for` loop does.
+
+## Attempt 4 (correct output, but edge cases fail)
+
+```
+$ ./q3 ; echo $?
+127
+(gdb) x/10uw &B
+19  31  43  55  67  79  91  103  115  127     <- correct, 10 iterations
+```
+
+Edge-case testing, each made by changing one input value:
+
+| Test | Change | Result |
+|---|---|---|
+| Overflow | A[0] = 0x60000000 | B[0] = 1342177292, wrong with no warning (`mul` and `add` overflow ignored) |
+| Odd sum | A[0] = 3 | B[0] = 22, the remainder is dropped with no warning |
+| Divisor 0 | divisor = 0 | `Floating point exception`, exit 136 |
+
+The code also hard-codes values such as 3, 2, 1, 10 and 4.
+**Next step:** check CF after every `mul` and `add`, check for a zero divisor and for a non-zero remainder, replace the hard-coded values with named constants, and document the register use.
