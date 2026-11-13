@@ -1,0 +1,17 @@
+name: Build and run
+on: [push, workflow_dispatch]
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: sudo apt-get update && sudo apt-get install -y nasm gdb
+      - name: q2
+        run: |
+          nasm -f elf32 q2.asm -o q2.o && ld -m elf_i386 q2.o -o q2
+          ./q2 || echo "q2 exit code: $?"
+      - name: q3
+        run: |
+          nasm -f elf32 -g q3.asm -o q3.o && ld -m elf_i386 q3.o -o q3
+          ./q3 || echo "q3 exit code: $?"
+          gdb -q -batch -ex "catch syscall exit exit_group" -ex run -ex "x/10dw &B" ./q3
