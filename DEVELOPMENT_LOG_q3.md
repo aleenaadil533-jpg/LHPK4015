@@ -91,3 +91,22 @@ Edge-case testing, each made by changing one input value:
 
 The code also hard-codes values such as 3, 2, 1, 10 and 4.
 **Next step:** check CF after every `mul` and `add`, check for a zero divisor and for a non-zero remainder, replace the hard-coded values with named constants, and document the register use.
+
+## Attempt 5 (final)
+
+Changes from attempt 4:
+
+- Named constants are used throughout: `ARRAY_LEN`, `ELEMENT_SIZE`, `A_MULTIPLIER`, `C_MULTIPLIER`, `TERM_ADDEND` and `DIVISOR`.
+- Each C term is translated in its own commented block, with no algebraic simplification.
+- A `jc` check follows every `mul` and `add`, giving exit code 250 on unsigned overflow.
+- The divisor is checked for zero before `div` (exit code 251).
+- `div` must leave no remainder, as the task states; a remainder gives exit code 252.
+- The C variable `i` is also kept in memory, and holds 10 after the loop, as it would in C.
+- A header documents the build steps, the exit codes and which register holds what.
+
+| Test | Result |
+|---|---|
+| Normal run | exit 127, B = 19 31 43 55 67 79 91 103 115 127 |
+| A[0] = 0x60000000 | exit 250 (overflow detected) |
+| A[0] = 3 (odd sum) | exit 252 (remainder detected) |
+| Divisor = 0 | exit 251 (handled, no crash) |
