@@ -24,3 +24,20 @@ q2.asm:14: error: invalid combination of opcode and operands
 
 **Cause:** `mul` and `div` only accept a register or memory operand. They do not accept an immediate value.
 **Next step:** load 4 and 8 into a register before each instruction.
+
+## Attempt 2 (wrong result: array corrupted)
+
+The program assembles and runs, but the exit code is 0 instead of 8.
+
+```
+$ ./q2 ; echo $?
+0
+(gdb) p/x $ebx
+$2 = 0x8000000
+(gdb) x/16xb &numbers
+0x804a000 <numbers>:  0x08 0x00 0x00 0x00 0x08 0x00 0x00 0x00
+0x804a008:            0x18 0x00 0x00 0x00 0x20 0x00 0x00 0x00
+```
+
+**Cause:** `[numbers + 1]` is a byte offset, but each element is a 4-byte dword. The load therefore read bytes 1 to 4, which span two elements: 0x10000000. That value went through the multiply and divide to become 0x08000000, which was then written back across the boundary between elements 0 and 1.
+**Next step:** address the second element at byte offset 1 × 4 = 4.
