@@ -75,3 +75,20 @@ Edge-case testing showed this version is still fragile.
 
 The program also hard-codes values such as `+ 4`, 4 and 8 directly in the instructions instead of naming them.
 **Next step:** add a divisor-zero check and a `mul` overflow check (CF), replace the hard-coded values with named constants, and document each step.
+
+## Attempt 5 (final)
+
+Changes from attempt 4:
+
+- Named constants are used throughout: `ELEMENT_SIZE`, `TARGET_INDEX`, `MULTIPLIER` and `DIVISOR`.
+- The element address is computed as `numbers + TARGET_INDEX * ELEMENT_SIZE`.
+- `jc` after `mul` catches a product that overflows 32 bits, and the program exits with code 250.
+- The divisor is tested before `div`, and the program exits with code 251 if it is zero, so it can no longer crash with #DE.
+- The exit code is read back from memory, which proves that the store actually happened.
+- A header and per-step comments explain the reasoning.
+
+| Test | Result |
+|---|---|
+| Normal run | exit 8, `numbers` = 8 8 24 32 |
+| Divisor = 0 | exit 251 (handled, no crash) |
+| Multiplier = 0x20000000 | exit 250 (overflow detected, nothing stored) |
