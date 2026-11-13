@@ -51,3 +51,23 @@ Program received signal SIGFPE, Arithmetic exception.
 - `div` treats EDX:EAX as the 64-bit dividend. With EDX = 9 (term 2), the dividend was 9·2³² + 6. Its quotient when divided by 2 does not fit in 32 bits, so the CPU raised a divide error (#DE), which Linux reports as SIGFPE.
 
 **Next step:** keep the sum in EBX, which `mul` and `div` never touch, and clear EDX before `div`.
+
+## Attempt 3 (wrong result and out-of-bounds write)
+
+This attempt switched to the `loop` instruction, using ECX as both the counter and the index.
+
+```
+$ ./q3 ; echo $?
+0
+(gdb) x/10uw &B
+0  31  43  55  67  79  91  103  115  127     <- B[0] never written
+(gdb) x/1uw &after_B
+16                                            <- variable after B overwritten
+```
+
+**Cause:** `loop` counts ECX *down* from 10 to 1, so the loop body ran for i = 10, 9, …, 1 rather than 0 to 9. This had three effects:
+- B[0] was never computed.
+- A[10] and C[10] were read from beyond the end of the arrays.
+- B[10] was written past the end of B, overwriting the next variable with the value 16.
+
+**Next step:** use a separate index that counts up from 0 to 9, with `inc` / `cmp` / `jb`, exactly as the C `for` loop does.
