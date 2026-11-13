@@ -1,6 +1,8 @@
-; q2.asm - attempt 2
-; Fix from attempt 1: MUL/DIV cannot take an immediate operand, so the
-; multiplier and divisor are now loaded into registers first.
+; q2.asm - attempt 3
+; Fix from attempt 2: the array holds dwords (4 bytes each), so the second
+; element is at byte offset 1 * 4 = 4, not 1. Offset 1 read the middle of
+; two elements and the store corrupted the array.
+; Change: divisor now kept in EDX to free up ECX.
 
 section .data
     numbers dd 8, 16, 24, 32        ; array of four unsigned integers
@@ -9,13 +11,13 @@ section .text
     global _start
 
 _start:
-    mov     eax, [numbers + 1]      ; load second element
+    mov     eax, [numbers + 4]      ; load second element (16)
     mov     ecx, 4
-    mul     ecx                     ; EDX:EAX = EAX * 4
-    mov     ecx, 8
-    div     ecx                     ; EAX = quotient, EDX = remainder
-    mov     [numbers + 1], eax      ; store quotient back into second element
+    mul     ecx                     ; EDX:EAX = 16 * 4 = 64
+    mov     edx, 8                  ; divisor
+    div     edx                     ; EAX = quotient
+    mov     [numbers + 4], eax      ; store quotient back
 
-    mov     ebx, eax                ; return result as exit code to check it
+    mov     ebx, eax                ; return result as exit code
     mov     eax, 1                  ; sys_exit
     int     0x80

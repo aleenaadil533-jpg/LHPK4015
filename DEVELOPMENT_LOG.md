@@ -41,3 +41,18 @@ $2 = 0x8000000
 
 **Cause:** `[numbers + 1]` is a byte offset, but each element is a 4-byte dword. The load therefore read bytes 1 to 4, which span two elements: 0x10000000. That value went through the multiply and divide to become 0x08000000, which was then written back across the boundary between elements 0 and 1.
 **Next step:** address the second element at byte offset 1 × 4 = 4.
+
+## Attempt 3 (runtime crash)
+
+```
+$ ./q2 ; echo $?
+Floating point exception (core dumped)
+136
+(gdb) run
+Program received signal SIGFPE, Arithmetic exception.
+(gdb) x/4uw &numbers
+0x804a000 <numbers>:  8  16  24  32     <- the store never happened
+```
+
+**Cause:** the divisor was placed in EDX, but `div` divides the 64-bit value in EDX:EAX. The dividend therefore became 0x00000008_00000040, and the quotient of that divided by 8 does not fit in 32 bits. The CPU raised a divide error (#DE), which Linux reports as SIGFPE.
+**Next step:** use ECX for the divisor and leave EDX holding the high half of the `mul` result, which is 0.
